@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+#define int long long
+#define endl '\n'
+using namespace std;
+
+typedef long long ll;
+#define READ(a) int a; cin >> a;
+#define READARR(a, n) int a[(n) + 1] = {}; FOR(i, 1, (n)) {cin >> a[i];}
+#define READMAT(a, n, m) int a[n + 1][m + 1] = {}; FOR(i, 1, n) {FOR(j, 1, m) cin >> a[i][j];}
+#define pb push_back
+#define fi first
+#define se second
+#define vi vector <int>
+#define pi pair <int, int>
+#define vpi vector <pi>
+#define FOR(i, a, b) for (int i = (a); i <= (b); i++)
+#define FORD(i, a, b) for (int i = (a); i >= (b); i--)
+const ll inf = 1e15;
+const ll mod = 1e9 + 7;
+
+int n, m;
+vector <set <int>> adj(1001);
+vi visited(1001), d(1001), p(1001);
+
+void input()
+{
+    cin >> n >> m;
+    FOR (i, 1, m)
+    {
+        int x, y;
+        cin >> x >> y;
+        adj[x].insert(y);
+    }
+}
+
+void bfs (int root)
+{
+    visited.assign(1001, 0);
+    d.assign(1001, inf);
+    p.assign(1001, 0);
+    
+    queue <int> q;
+    q.push(root);
+    d[root] = 0;
+    visited[root] = true;
+    
+    while (!q.empty())
+    {
+        int v = q.front();
+        q.pop();
+        
+        for (int u: adj[v])
+        {
+            if (!visited[u])
+            {
+                q.push(u);
+                visited[u] = true;
+                d[u] = d[v] + 1;
+                p[u] = v;
+            }
+        }
+    }
+}
+
+signed main()
+{
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);
+	input();
+	int veri, verj, ans = inf;
+	
+	FOR (i, 1, n)
+	    for (int j: adj[i])
+	    {
+	        adj[i].erase(j);
+	        bfs(j);
+	        if (d[i] < ans) ans = d[i], veri = i, verj = j;
+	        
+	        adj[i].insert(j);
+	    }
+	    
+	if (ans >= inf) {cout << -1; return 0;}
+	cout << ans + 1 << endl;
+	
+	bfs(verj);
+	while (veri != verj)
+	{
+	    cout << veri << endl;
+	    veri = p[veri];
+	}
+	cout << verj;
+}
