@@ -1,0 +1,41 @@
+#include <bits/stdc++.h>
+#define pi pair<int, int>
+using namespace std;
+
+int main() 
+{
+	ios_base::sync_with_stdio(false);
+	int n, q, x, y, z;
+	cin >> n >> q;
+	pair <int, pi> coord[n];
+	for (int i = 0; i < n; i++)
+	{
+		cin >> x >> y >> z;
+		coord[i] = make_pair(z, make_pair(x - z, y - z - 1));
+	}
+	sort(coord, coord + n);
+	
+	set <int> p;
+	map <int, int> ans;
+	for (int i = 1; i <= q; i++)
+	{
+		cin >> x;
+		p.insert(p.end(), x);
+		ans[x] = -1;
+	}
+	
+	for (int i = 0; i < n; i++)
+	{
+		x = coord[i].first;
+		int start = coord[i].second.first;
+		int end = coord[i].second.second;
+		while (p.lower_bound(start) != p.end() && *p.lower_bound(start) <= end)
+		{
+			ans[*p.lower_bound(start)] = x; 
+			p.erase(p.lower_bound(start));
+		}
+	}
+	
+	for (auto i: ans)
+		cout << i.second << endl;
+}
