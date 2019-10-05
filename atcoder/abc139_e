@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+#define int long long
+#define endl '\n'
+using namespace std;
+
+typedef long long ll;
+#define READ(a) int a; cin >> a;
+#define READARR(a, n) int a[(n) + 1] = {}; FOR(i, 1, (n)) {cin >> a[i];}
+#define READMAT(a, n, m) int a[n + 1][m + 1] = {}; FOR(i, 1, n) {FOR(j, 1, m) cin >> a[i][j];}
+#define pb push_back
+#define fi first
+#define se second
+#define vi vector <int>
+#define pi pair <int, int>
+#define vpi vector <pi>
+#define FOR(i, a, b) for (int i = (a); i <= (b); i++)
+#define FORD(i, a, b) for (int i = (a); i >= (b); i--)
+const ll inf = 1e18;
+const ll mod = 1e9 + 7;
+
+int n;
+map <pi, set <pi>> adj;
+map <pi, int> visited;
+vpi edges, topo;
+inline pi coo (int x, int y) {return {min(x, y), max(x, y)};}
+
+void input()
+{
+    cin >> n;
+    FOR (i, 1, n)
+    {
+        READ(x);
+        edges.pb(coo(x, i));
+        FOR (j, 1, n - 2)
+        {
+            READ(y);
+            edges.pb(coo(y, i));
+            adj[coo(x, i)].insert(coo(y, i));
+            x = y;
+        }
+    }
+}
+
+void dfs (pi cur)
+{
+    visited[cur] = 1;
+    for (pi i: adj[cur])
+    {
+        if (!visited[i])
+            dfs(i);
+        
+        else if (visited[i] == 1)
+        {
+            cout << -1;
+            exit(0);
+        }
+    }
+    
+    visited[cur] = 2;
+    topo.pb(cur);
+}
+
+signed main()
+{
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);
+	input();
+	
+	for (pi i: edges)
+        if (!visited[i])
+	        dfs(i);
+	        
+	reverse(topo.begin(), topo.end());
+	
+	int last[n + 1] = {}, ans = 0;
+	for (pi i: topo)
+	{
+	    int x = max(last[i.fi], last[i.se]);
+	    last[i.fi] = last[i.se] = x + 1;
+	    ans = max({ans, last[i.fi], last[i.se]});
+	}
+	
+	cout << ans;
+}
