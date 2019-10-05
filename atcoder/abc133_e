@@ -1,0 +1,63 @@
+#include <bits/stdc++.h>
+#define int long long
+#define endl '\n'
+using namespace std;
+
+typedef long long ll;
+#define READ(a) int a; cin >> a;
+#define READARR(a, n) int a[(n) + 1]; FOR(i, 1, (n)) {cin >> a[i];}
+#define READMAT(a, n, m) int a[n + 1][m + 1]; FOR(i, 1, n) {FOR(j, 1, m) cin >> a[i][j];}
+#define pb(x) push_back(x)
+#define vi vector <int>
+#define pi pair <int, int>
+#define FOR(i, a, b) for (int i = (a); i <= (b); i++)
+#define FORD(i, a, b) for (int i = (a); i >= (b); i--)
+const ll inf = 1e18;
+const ll mod = 1e9 + 7;
+
+vector <vi> adj;
+vi dp;
+int n, k;
+
+void input()
+{
+	int x, y;
+	cin >> n >> k;
+	adj.resize(n + 1);
+	dp.resize(n + 1, 1);
+	
+	for (int i = 1; i < n; i++)
+	{
+		cin >> x >> y;
+		adj[x].push_back(y);
+		adj[y].push_back(x);
+	}
+}
+
+void dfs (int cur = 1, int prev = 0)
+{
+	int x = k - 2;
+	for (int i: adj[cur])
+		if (i != prev)
+		{
+			dfs(i, cur);
+			dp[cur] = dp[cur] * dp[i] % mod * x % mod;
+			x--;
+		}
+}
+
+signed main()
+{
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);	
+	input();
+	dfs();
+	
+	int ans = k, x = k - 1;
+	for (int i: adj[1])
+	{
+		ans = ans * dp[i] % mod * x % mod;
+		x--;
+	}
+	cout << ans;
+}
