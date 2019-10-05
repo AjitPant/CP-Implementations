@@ -1,0 +1,69 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define pi pair <int, int>
+typedef long long ll;
+int n;
+
+map <pi, pi> parent;
+map <pi, int> size;
+map <pi, set<int>> xs, ys;
+
+auto root (auto v)
+{
+	if (parent[v] == v) return v;
+	return parent[v] = root(parent[v]);
+}
+
+void merge (pi a, pi b)
+{
+	a = root(a);
+	b = root(b);
+	if (a != b)
+	{
+		if (size[a] < size[b]) swap(a, b);
+		parent[b] = a;
+		size[a] += size[b];
+	}
+}
+
+int main()
+{
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);
+
+	int a, b;
+	cin >> n;
+	vector<int> x[100001], y[100001];
+	pi coo[n];
+	
+	for (int i = 0; i < n; i++)
+	{
+		cin >> a >> b;
+		coo[i] = {a, b};
+		parent[coo[i]] = coo[i];
+		size[coo[i]] = 1;
+		
+		x[a].push_back(b);
+		y[b].push_back(a);
+	}
+	
+	for (int i = 1; i <= 100000; i++)
+		for (int j: x[i])
+			merge({i, j}, {i, x[i][0]});
+	
+	for (int i = 1; i <= 100000; i++)
+		for (int j: y[i])
+			merge({j, i}, {y[i][0], i});
+	
+	for (pi q: coo)
+	{
+		xs[root(q)].insert(q.first);
+		ys[root(q)].insert(q.second);
+	}
+	
+	ll ans = 0;
+	for (pi q: coo)
+		if (q == root(q)) ans += (ll)(xs[q].size()) * (ll)(ys[q].size());
+	
+	cout << ans - n;
+}
