@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define vi vector <int>
+#define pi pair <int, int>
+typedef long long ll;
+
+vector <vi> adj;
+vi d, visited;
+int n, m, s, t;
+
+void input()
+{
+	int x, y;
+	cin >> n >> m;
+	adj.resize(3*n);
+	d.resize(3*n);
+	visited.resize(3*n);
+	
+	for (int i = 1; i <= m; i++)
+	{
+		cin >> x >> y; x--; y--;
+		adj[3*x].push_back(3*y + 1);
+		adj[3*x + 1].push_back(3*y + 2);
+		adj[3*x + 2].push_back(3*y);
+	}
+	
+	cin >> s >> t;
+	s = 3*(s - 1);
+	t = 3*(t - 1);
+}
+
+void bfs()
+{
+	queue <int> q;
+	q.push(s);
+	visited[s] = 1;
+	
+	while (!q.empty())
+	{
+		int v = q.front();
+		q.pop();
+		for (int u: adj[v])
+			if (!visited[u])
+			{
+				q.push(u);
+				visited[u] = true;
+				d[u] = d[v] + 1;
+			}
+	}
+}
+
+signed main()
+{
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);	
+	input();
+	bfs();
+	if (d[t]) cout << d[t]/3;
+	else cout << -1;
+}
