@@ -1,0 +1,148 @@
+#include <bits/stdc++.h>
+#define int long long
+#define endl '\n'
+using namespace std;
+
+typedef long long ll;
+#define READ(a) int a; cin >> a;
+#define READARR(a, n) int a[(n) + 1]; FOR(i, 1, (n)) {cin >> a[i];}
+#define READMAT(a, n, m) int a[n + 1][m + 1]; FOR(i, 1, n) {FOR(j, 1, m) cin >> a[i][j];}
+#define pb push_back
+#define fi first
+#define se second
+#define vi vector <int>
+#define pi pair <int, int>
+#define vpi vector <pi>
+#define FOR(i, a, b) for (int i = (a); i <= (b); i++)
+#define FORD(i, a, b) for (int i = (a); i >= (b); i--)
+const ll inf = 1e18;
+const ll mod = 1e9 + 7;
+const ll N = 1e5 + 1;
+struct edge {int x, c, d;};
+
+int n, q;
+vector <edge> adj[N];
+int sum[N] = {}, tin[N] = {}, tout[N] = {}, tour[N] = {}, c[N] = {}, d[N] = {}, big[N] = {}, head[N] = {}, parent[N] = {}, dps[N] = {}, dpc[N] = {};
+set <int> col[N];
+stack <int> s[N];
+
+bool ancestor (int x, int y)
+{
+    //is y in the subtree of x?
+    return tin[x] <= tin[y] && tout[x] >= tout[y];
+}
+
+int search (int start, int end, int y)
+{
+    if (start == end) return tour[start];
+    int mid = (start + end)/2;
+    
+    if (ancestor(tour[mid + 1], y)) return search(mid + 1, end, y);
+    else return search(start, mid, y);
+}
+
+int find_lca (int x, int y)
+{
+    if (ancestor(y, x)) return y;
+    int xp = x; x = head[x];
+    while (x)
+    {
+        if (ancestor(x, y)) return search(tin[x], tin[xp], y);
+        xp = parent[x];
+        x = head[parent[x]];
+    }
+}
+
+pi solve (int x, int clr)
+{
+    int xp = x; x = head[x];
+    while (x)
+    {
+        auto it = col[clr].upper_bound(tin[xp]); 
+        if (it != col[clr].begin() && *(--it) >= tin[x]) return {dps[tour[*it]], dpc[tour[*it]]};
+        xp = parent[x];
+        x = head[parent[x]];
+    }
+    return {0, 0};
+}
+
+void input()
+{
+	int x, y, c, d;
+	cin >> n >> q;
+	FOR (i, 1, n - 1)
+	{
+		cin >> x >> y >> c >> d;
+		adj[x].pb({y, c, d});
+		adj[y].pb({x, c, d});
+	}
+}
+
+int dfs1 (int cur = 1, int prev = 0)
+{
+    parent[cur] = prev;
+    int sz = 1, mx = 0;
+    
+    for (auto i: adj[cur])
+		if (i.x != prev)
+		{
+		    c[i.x] = i.c;
+		    d[i.x] = i.d;
+		    sum[i.x] = sum[cur] + i.d;
+			int temp = dfs1(i.x, cur);
+			
+			if (temp > mx) mx = temp, big[cur] = i.x;
+			sz += temp;
+		}
+		
+	return sz;
+}
+
+int tim = 0;
+void dfs2 (int cur = 1, int prev = 0, int keep = 0)
+{
+    int cl = c[cur];
+	tin[cur] = ++tim;
+	tour[tim] = cur;
+	col[cl].insert(tim);
+	
+	if (!keep) head[cur] = cur;
+	else head[cur] = head[prev];
+	
+	if (s[cl].empty()) dps[cur] = d[cur], dpc[cur] = 1;
+	else dps[cur] = dps[s[cl].top()] + d[cur], dpc[cur] = dpc[s[cl].top()] + 1;
+	s[cl].push(cur);
+	
+	if (big[cur]) dfs2(big[cur], cur, 1);
+	
+	for (auto i: adj[cur])
+		if (i.x != prev && i.x != big[cur])
+			dfs2(i.x, cur, 0);
+	
+	tout[cur] = tim;
+	s[cl].pop();
+}
+
+signed main()
+{
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);	
+	input();
+	dfs1();
+	dfs2();
+	
+	FOR (i, 1, q)
+	{
+	    int x, y, u, v, lca;
+	    cin >> x >> y >> u >> v;
+	    
+	    lca = find_lca(u, v);
+	    int tsum = sum[u] + sum[v] - 2*sum[lca];
+	    
+	    pi us = solve(u, x), vs = solve(v, x), lcas = solve(lca, x);
+	    int csum = us.fi + vs.fi - 2*lcas.fi;
+	    int cnt = us.se + vs.se - 2*lcas.se;
+	    
+	    cout << tsum - csum + cnt * y << endl;
+	}
+}
