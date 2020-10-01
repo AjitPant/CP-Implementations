@@ -1,0 +1,129 @@
+#include "bits/stdc++.h"
+#define int long long
+#define endl '\n'
+using namespace std;
+ 
+typedef long long ll;
+#define db(x) cerr << #x << ": " << x << '\n';
+#define read(a) int a; cin >> a;
+#define readb(a, b) int a, b; cin >> a >> b;
+#define readc(a, b, c) int a, b, c; cin >> a >> b >> c;
+#define readarr(a, n) int a[(n) + 1] = {}; FOR(i, 1, (n)) {cin >> a[i];}
+#define readmat(a, n, m) int a[n + 1][m + 1] = {}; FOR(i, 1, n) {FOR(j, 1, m) cin >> a[i][j];}
+ 
+#define print(a) cout << a << endl;
+#define printarr(a, n) FOR (i, 1, n) cout << a[i] << " "; cout << endl;
+#define printv(v) for (int i: v) cout << i << " "; cout << endl;
+#define printmat(a, n, m) FOR (i, 1, n) {FOR (j, 1, m) cout << a[i][j] << " "; cout << endl;} cout << endl;
+#define all(v) v.begin(), v.end()
+#define sz(v) (int)(v.size())
+#define rz(v, n) v.resize((n) + 1);
+#define pb push_back
+#define fi first
+#define se second
+#define vi vector <int>
+#define pi pair <int, int>
+#define vpi vector <pi>
+#define vvi vector <vi>
+#define FOR(i, a, b) for (int i = (a); i <= (b); i++)
+#define FORD(i, a, b) for (int i = (a); i >= (b); i--)
+const ll inf = 1e18;
+const ll mod = 1e9 + 7;
+const ll N = 3e5 + 1;
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+int n, m;
+vi adj[N];
+int cyc[N], vis[N];
+
+void input()
+{
+	cin >> n >> m;
+	FOR (i, 1, m)
+	{
+		readb(x, y);
+		adj[x].pb(y);
+		adj[y].pb(x);
+	}
+}
+
+vi path;
+void dfs (int cur, int prev = 0)
+{
+    path.pb(cur);
+    vis[cur] = 1;
+    
+	for (int i: adj[cur])
+		if (!vis[i])
+			dfs(i, cur);
+		
+		else if (i != prev && vis[i] == 1)
+		{
+		    int mn = i, mx = i;
+		    FORD (j, sz(path) - 1, 0)
+		    {
+		        int p = path[j];
+		        if (p == i) break;
+		        mn = min(mn, p);
+		        mx = max(mx, p);
+		    }
+		    
+		    cyc[mn] = mx;
+		}
+	
+	path.pop_back();
+	vis[cur] = 2;
+}
+
+signed main()
+{
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);	
+	input();
+	FOR (i, 1, n)
+	    if (!vis[i]) dfs(i);
+	
+	set <int> s;
+	read(q);
+	int ans[q + 1];
+	vpi query[n + 1];
+	FOR (i, 1, q)
+	{
+	    readb(x, y);
+	    query[y].pb({x, i});
+	}
+	
+	int border[n + 1];
+	FORD (i, n, 1)
+	{
+	    if (cyc[i]) s.insert(cyc[i]);
+	    auto it = s.upper_bound(i);
+	    
+	    border[i] = n;
+	    if (it != s.end()) border[i] = *it - 1;
+	}
+	
+	int pre[n + 1] = {};
+	FOR (i, 1, n)
+	{
+	    int r = lower_bound(border + 1, border + i + 1, i) - border;
+	    pre[i] = pre[i - 1] + border[i] - i + 1;
+	    
+	    for (pi x: query[i])
+	    {
+	        int rn = max(x.fi, r), yn = i - rn + 1;
+	        ans[x.se] = pre[rn - 1] - pre[x.fi - 1] + yn*(yn + 1)/2;
+	    }
+	}
+	
+	printarr(ans, q);
+}
+
+
+
+
+
+
+
+
+
