@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp> 
+#include <ext/pb_ds/tree_policy.hpp>
+#define int long long
+#define endl '\n'
+using namespace std;
+using namespace __gnu_pbds;
+typedef tree<int, null_type, less_equal<int>, rb_tree_tag, tree_order_statistics_node_update> oset;
+ 
+typedef long long ll;
+#define db(x) cerr << #x << ": " << x << '\n';
+#define read(a) int a; cin >> a;
+#define readb(a, b) int a, b; cin >> a >> b;
+#define readc(a, b, c) int a, b, c; cin >> a >> b >> c;
+#define readarr(a, n) int a[(n) + 1] = {}; FOR(i, 1, (n)) {cin >> a[i];}
+#define readmat(a, n, m) int a[n + 1][m + 1] = {}; FOR(i, 1, n) {FOR(j, 1, m) cin >> a[i][j];}
+
+#define print(a) cout << a << endl;
+#define printarr(a, n) FOR (i, 1, n) cout << a[i] << " "; cout << endl;
+#define printv(v) for (int i: v) cout << i << " "; cout << endl;
+#define printmat(a, n, m) FOR (i, 1, n) {FOR (j, 1, m) cout << a[i][j] << " "; cout << endl;} cout << endl;
+#define all(v) v.begin(), v.end()
+#define sz(v) (int)(v.size())
+#define rz(v, n) v.resize((n) + 1);
+#define pb push_back
+#define fi first
+#define se second
+#define vi vector <int>
+#define pi pair <int, int>
+#define vpi vector <pi>
+#define vvi vector <vi>
+#define FOR(i, a, b) for (int i = (a); i <= (b); i++)
+#define FORD(i, a, b) for (int i = (a); i >= (b); i--)
+const ll inf = 1e18;
+const ll mod = 1e9 + 7;
+const ll N = 2e5 + 1;
+
+signed main()
+{
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);
+	
+	read(n);
+	pi a[n + 1] = {};
+	FOR (i, 1, n) cin >> a[i].fi >> a[i].se;
+	sort(a + 1, a + n + 1);
+	
+	oset s;
+	set <int> p;
+	FOR (i, 1, n) p.insert(a[i].se);
+	
+	int mn[n + 1] = {}, cnt[n + 1] = {1};
+	map <int, int> mp;
+	FOR (i, 1, n)
+	{
+	    int in = a[i].se, out = a[i].fi;
+	    int x = s.order_of_key(in + 1);
+	    
+	    int y = mn[x] + in - a[x].fi, z = mn[i - 1] + out - a[i - 1].fi;
+	    if (p.lower_bound(out) == p.end()) mp[y] = (mp[y] + cnt[x]) % mod;
+	    
+	    if (y < z) mn[i] = y, cnt[i] = cnt[x];
+	    else if (y == z) mn[i] = y, cnt[i] = cnt[i - 1] + cnt[x];
+	    else mn[i] = z, cnt[i] = cnt[i - 1];
+	    
+	    cnt[i] %= mod;
+	    s.insert(out);
+	}
+	
+	cout << (*mp.begin()).se;
+}
+
+
+
+
+
+
+
+
+
+ 
