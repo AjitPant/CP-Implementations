@@ -1,0 +1,320 @@
+//Optional FAST
+
+//#pragma GCC optimize("Ofast")
+//#pragma GCC optimize("unroll-loops")
+//#pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,fma,abm,mmx,avx,avx2,tune=native")
+
+//Required Libraries
+
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+#include <ext/pb_ds/detail/standard_policies.hpp>
+
+//Required namespaces
+
+using namespace std;
+using namespace __gnu_pbds;
+
+//Required defines
+
+#define endl '\n'
+
+#define READ(X) cin>>X;
+#define READV(X) long long X; cin>>X;
+#define READAR(A,N) long long A[N]; for(long long i=0;i<N;i++) {cin>>A[i];}
+#define rz(A,N) A.resize(N);
+#define sz(X) (long long)(X.size())
+#define pb push_back
+#define pf push_front
+#define fi first
+#define se second
+#define trav(x,A) for(auto &x:A)
+#define FORI(a,b,c) for(long long a=b;a<c;a++)
+#define FORD(a,b,c) for(long long a=b;a>c;a--)
+
+//Required typedefs
+
+typedef tree<long long,null_type,less<long long>,rb_tree_tag,tree_order_statistics_node_update> ordered_set;
+typedef tree<long long,null_type,greater<long long>,rb_tree_tag,tree_order_statistics_node_update> ordered_set1;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int,int> pii;
+typedef pair<long long,long long> pll;
+typedef vector<int> veci;
+typedef vector<long long> vecl;
+
+//Required Constants
+
+const long long inf=(long long)1e18;
+const long long MOD=(long long)(1e9+7);
+const long long INIT=(long long)(1e6+1);
+
+//Required Functions
+
+ll power(ll x,ll y) 
+{ 
+	if (y == 0) 
+		return 1; 
+	ll p = power(x, y/2) % MOD; 
+	p = (p * p) % MOD; 
+  
+	return (y%2 == 0)? p : (x * p) % MOD; 
+}
+ll modInverse(ll a) 
+{ 
+   return power(a,MOD-2); 
+   
+}
+
+//Work
+
+ll N, l;
+vector<bool> color;
+vector<ll> distance_from_root;
+vector<multiset<pll>> distance_from_red;
+ll root=-1;
+ll timer;
+vector<ll> tin, tout;
+vector<vector<ll>> up;
+
+//-------------------------Centroid Decomposition---------------------------//
+vector<vector<ll>> ADJ;
+vector<ll> subtree_size;
+vector<bool> taken_CD;
+vector<vector<ll>> ADJ_CD;
+
+void dfs_size(ll u,ll p=-1)
+{
+	subtree_size[u]=1;
+	for(auto v:ADJ[u])
+	{
+		if(v!=p && !taken_CD[v])
+		{
+			dfs_size(v,u);
+			subtree_size[u]+=subtree_size[v];
+		}
+	}
+}
+
+void Centroid_Decompostion(ll u1,ll present_size, ll parent=-1)
+{
+	dfs_size(u1,parent);
+	deque<pll> dfs;
+	ll centroid=-1;
+	dfs.push_back({u1,parent});
+	while (dfs.size()>0)
+	{
+		ll u=dfs.front().fi;
+		ll p=dfs.front().se;
+		dfs.pop_front();
+		bool ok=true;
+		ll parent_size=present_size-1;
+		for(auto v:ADJ[u])
+		{
+			if(v!=p && !taken_CD[v])
+			{
+				parent_size-=subtree_size[v];
+				if(subtree_size[v]>(present_size/2))
+				{
+					dfs.push_front({v,u});
+					ok=false;
+				}
+			}
+		}
+		if(parent_size>(present_size/2))
+		{
+			ok=false;
+		}
+		if(ok)
+		{
+			centroid=u;
+			taken_CD[centroid]=true;
+			if(parent==-1)
+			{
+				root=centroid;
+			}
+			else
+			{
+				ADJ_CD[centroid].pb(parent);
+			}
+			for(auto v:ADJ[centroid])
+			{
+				if(v!=p && v!=parent && !taken_CD[v])
+				{
+					Centroid_Decompostion(v,subtree_size[v],centroid);
+				}
+			}
+			if(p!=-1 && p!=parent && !taken_CD[p])
+			{
+				Centroid_Decompostion(p,present_size-subtree_size[centroid],centroid);
+			}
+			break;
+		}
+	}
+}
+//---------------------------------------LCA-------------------------------------//
+
+void dfs_lca(ll v, ll p)
+{
+	tin[v] = ++timer;
+	up[v][0] = p;
+	for (ll i = 1; i <= l; ++i)
+		up[v][i] = up[up[v][i-1]][i-1];
+
+	for (ll u : ADJ[v]) {
+		if (u != p)
+			dfs_lca(u, v);
+	}
+
+	tout[v] = ++timer;
+}
+
+bool is_ancestor(ll u, ll v)
+{
+	return tin[u] <= tin[v] && tout[u] >= tout[v];
+}
+
+ll LCA(ll u, ll v)
+{
+	if (is_ancestor(u, v))
+		return u;
+	if (is_ancestor(v, u))
+		return v;
+	for (ll i = l; i >= 0; --i) {
+		if (!is_ancestor(up[u][i], v))
+			u = up[u][i];
+	}
+	return up[u][0];
+}
+
+void preprocess_lca(ll root) {
+	tin.resize(N+1);
+	tout.resize(N+1);
+	timer = 0;
+	l = ceil(log2(N+1));
+	up.assign(N+1, vector<ll>(l + 1));
+	dfs_lca(root, root);
+}
+
+//---------------------------Distance From Root------------------------//
+void dfs_distance_from_root(ll u,ll p=-1)
+{
+	for(auto v:ADJ[u])
+	{
+		if(v!=p)
+		{
+			distance_from_root[v]=1+distance_from_root[u];
+			dfs_distance_from_root(v,u);
+		}
+	}
+}
+
+//--------------------------Query Handling-------------------------//
+
+void update(ll u,ll c)
+{
+	if(u==c)
+	{
+		color[u]=!color[u];
+	}
+	ll lca=LCA(u,c);
+	ll dist=distance_from_root[u]+distance_from_root[c]-2*distance_from_root[lca];
+	if(color[c])
+	{
+		distance_from_red[u].insert({dist,c});
+	}
+	else
+	{
+		distance_from_red[u].erase(distance_from_red[u].find({dist,c}));
+	}
+	if(ADJ_CD[u].size()>0)
+	{
+		update(ADJ_CD[u][0],c);
+	}	
+}
+
+ll query(ll u,ll c,ll ans)
+{
+	ll lca=LCA(u,c);
+	ll dist=distance_from_root[u]+distance_from_root[c]-2*distance_from_root[lca];
+	if(distance_from_red[u].size()>0)
+	{
+		ans=min(ans,dist+(*distance_from_red[u].begin()).fi);
+	}
+	if(ADJ_CD[u].size()>0)
+	{
+		ans=query(ADJ_CD[u][0],c,ans);
+	}
+	return ans;
+}
+
+int main()
+{
+	#ifndef ONLINE_JUDGE
+	if (fopen("INPUT.txt", "r"))
+	{
+		freopen ("INPUT.txt" , "r" , stdin);
+		//freopen ("OUTPUT.txt" , "w" , stdout);
+	}
+	#endif
+	ios::sync_with_stdio(false);
+	cin.tie(0);
+	cout.tie(0);
+
+	clock_t clk;
+	clk = clock();
+//-----------------------------------------------------------------------------------------------------------//
+
+	READ(N);
+	ADJ.resize(N+1);
+	ADJ_CD.resize(N+1);
+	color.resize(N+1,false);
+	distance_from_root.resize(N+1,0);
+	subtree_size.resize(N+1,0);
+	distance_from_red.resize(N+1);
+	taken_CD.resize(N+1,false);
+	FORI(i,0,N-1)
+	{
+		READV(u)
+		READV(v);
+		ADJ[u].pb(v);
+		ADJ[v].pb(u);
+	}
+	Centroid_Decompostion(1,N);
+	preprocess_lca(1);
+	dfs_distance_from_root(1);
+	READV(M);
+	while (M--)
+	{
+		READV(T);
+		READV(V);
+		if(T==0)
+		{
+			update(V,V);
+		}
+		else
+		{
+			ll ans=query(V,V,inf);
+			if(ans<inf)
+			{
+				cout<<ans<<endl;
+			}
+			else
+			{
+				cout<<-1<<endl;
+			}
+			
+		}
+	}
+	
+	
+
+//-----------------------------------------------------------------------------------------------------------//
+
+
+	clk = clock() - clk;
+	cerr << fixed << setprecision(6) << "Time: " << ((double)clk)/CLOCKS_PER_SEC << endl;
+
+	return 0;
+}
