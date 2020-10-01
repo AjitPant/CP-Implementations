@@ -1,0 +1,173 @@
+#include "bits/stdc++.h"
+#define int long long
+#define endl '\n'
+using namespace std;
+
+/**
+             *     ,MMM8&&&.         *
+                  MMMM88&&&&&    .
+                 MMMM88&&&&&&&
+     *           MMM88&&&&&&&&            .
+                 MMM88&&&&&&&&
+                 'MMM88&&&&&&'
+                   'MMM8&&&'      *
+          |\___/|
+          )     (             .              '
+         =\     /=
+           )===(       *
+          /     \                       
+          |     |                       
+         /       \
+         \       /
+  _/\_/\_/\__  _/_/\_/\_/\_/\_/\_/\_/\_/\_/\_
+  |  |  |  |( (  |  |  |  |  |  |  |  |  |  |
+  |  |  |  | ) ) |  |  |  |  |  |  |  |  |  |
+  |  |  |  |(_(  |  |  |  |  |  |  |  |  |  |
+  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+
+**/
+ 
+typedef long long ll;
+#define db(x) cerr << #x << ": " << x << '\n';
+#define read(a) int a; cin >> a;
+#define readb(a, b) int a, b; cin >> a >> b;
+#define readc(a, b, c) int a, b, c; cin >> a >> b >> c;
+#define readarr(a, n) int a[(n) + 1] = {}; FOR(i, 1, (n)) {cin >> a[i];}
+#define readmat(a, n, m) int a[n + 1][m + 1] = {}; FOR(i, 1, n) {FOR(j, 1, m) cin >> a[i][j];}
+
+#define print(a) cout << a << endl;
+#define printarr(a, n) FOR (i, 1, n) cout << a[i] << " "; cout << endl;
+#define printv(v) for (int i: v) cout << i << " "; cout << endl;
+#define printmat(a, n, m) FOR (i, 1, n) {FOR (j, 1, m) cout << a[i][j] << " "; cout << endl;}
+#define all(v) v.begin(), v.end()
+#define sz(v) (int)(v.size())
+#define rz(v, n) v.resize((n) + 1);
+#define ld long double
+#define pb push_back
+#define fi first
+#define se second
+#define vi vector <int>
+#define pi pair <int, int>
+#define vpi vector <pi>
+#define vvi vector <vi>
+#define FOR(i, a, b) for (int i = (a); i <= (b); i++)
+#define FORD(i, a, b) for (int i = (a); i >= (b); i--)
+const ll inf = 1e18;
+const ll mod = 1e9 + 7;
+const ll N = 1e5 + 1;
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+int n, m;
+vpi adj[N];
+int vis[N], d[N], p[N][18], tin[N], tout[N], tim = 0;
+
+void input()
+{
+	cin >> n >> m;
+	FOR (i, 1, m)
+	{
+		readc(x, y, z);
+		adj[x].pb({y, z});
+		adj[y].pb({x, z});
+	}
+}
+
+set <int> dij;
+void dfs (int cur = 1, int prev = 0)
+{
+    tin[cur] = ++tim;
+	vis[cur] = 1;
+	
+	p[cur][0] = prev;
+	FOR (i, 1, 17) p[cur][i] = p[p[cur][i - 1]][i - 1];
+
+	for (pi x: adj[cur])
+	{
+	    int i = x.fi;
+		if (!vis[i])
+			d[i] = d[cur] + x.se, dfs(i, cur);
+		
+		else if (vis[i] == 1 && i != prev)
+		    dij.insert(cur);
+	}
+
+    vis[cur] = 2;
+    tout[cur] = tim;
+}
+
+inline bool ancestor (int x, int y)
+//is x an ancestor of y?
+{
+    if (!x) return true;
+    return tin[x] <= tin[y] && tout[y] <= tout[x]; 
+}
+
+int lca (int x, int y)
+{
+    if (ancestor(x, y)) return x;
+    if (ancestor(y, x)) return y;
+    
+    int ans = x;
+    FORD (i, 17, 0)
+        if (!ancestor(p[ans][i], y))
+            ans = p[ans][i];
+    
+    return p[ans][0];
+}
+
+void dijkstra(int s, vector<int> & d) {
+    d.assign(n + 1, inf);
+
+    d[s] = 0;
+    using pii = pair<int, int>;
+    priority_queue<pii, vector<pii>, greater<pii>> q;
+    q.push({0, s});
+    while (!q.empty()) {
+        int v = q.top().second;
+        int d_v = q.top().first;
+        q.pop();
+        if (d_v != d[v])
+            continue;
+
+        for (auto edge : adj[v]) {
+            int to = edge.first;
+            int len = edge.second;
+
+            if (d[v] + len < d[to]) {
+                d[to] = d[v] + len;
+                q.push({d[to], to});
+            }
+        }
+    }
+}
+
+vi dis[N];
+signed main()
+{
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);	
+	input();
+    
+    dfs();
+    for (int i: dij) dijkstra(i, dis[i]);
+    
+    read(q);
+    FOR (i, 1, q)
+    {
+        readb(x, y);
+        int ans = d[x] + d[y] - 2*d[lca(x, y)];
+        for (int i: dij) ans = min(ans, dis[i][x] + dis[i][y]);
+        print(ans);
+    }
+}
+
+
+
+
+
+
+
+
+
+
