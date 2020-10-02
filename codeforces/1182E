@@ -1,0 +1,293 @@
+ 
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+#define int long long
+
+#define all(X) (X).begin(), (X).end()
+#define reset(X) memset(X, 0, sizeof(X))
+#define mp(a, b) make_pair(a, b)
+#define pb push_back
+#define endl '\n'
+#define fi first
+#define se second
+
+using namespace __gnu_pbds;
+using namespace std;
+const int mod = 1e9+7;
+//const int mod=998'244'353;
+//const int mod=1e9+9;
+
+const int MOD = mod;
+
+const int INF=4e18+10;
+// const int INF = 4e18 + 10;
+template <typename T>
+using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+template <typename T>
+using ordered_multiset = tree<T, null_type, less_equal<T>, rb_tree_tag, tree_order_statistics_node_update>;
+
+#define read(n) \
+    int n;      \
+cin >> n;
+#define readv(x, n)   \
+    vector<int> x(n); \
+for (auto &i : x) \
+cin >> i;
+
+typedef vector<int> vi;
+typedef vector<vector<int>> vvi;
+typedef pair<int, int> pii;
+
+template <typename T1, typename T2>
+void set_min(T1 &a, T2 b){
+    a = min(a, (T1)b);
+}
+/* template <typename T1, typename T2> */
+bool sort_by_sec(pair<int, int> a, pair<int,int> b)
+{
+    return make_pair(a.se, a.fi)<make_pair(b.se,b.fi);
+}
+
+int multiply(int a, int b, int in_mod) { return (int)(1LL*a * b % in_mod );}
+int mult_identity(int a) { return 1; }
+
+int mod_inv(int q, int in_mod);
+
+// const int mod = 998244353;
+// const int root  = 15311432;
+// const int root_pw = 1<<23;
+// const int root_1 = mod_inv(root, mod);
+
+//const int mod = 7340033;
+//const int root  = 5;
+//const int root_pw = 1<<20;
+//const int root_1 = 4404020;
+
+vector<int >multiply(const vector<int>& a, const vector<int>& b,int mod);
+vector<int> mult_identity(vector<int> a)
+{
+    return {1};
+}
+
+vector<int> operator%(vector<int> a, int mod)
+{
+    return a;
+}
+
+
+vector<vector<int> > multiply(vector<vector<int>> a, vector<vector<int>> b, int in_mod)
+{
+    int n = a.size();
+    int l = b.size();
+    int m = b[0].size();
+    vector<vector<int> > result(n,vector<int>(n));
+    for(int i=0;i<n;i++)
+    {
+        for(int j=0;j<m;j++)
+        {
+            for(int k=0;k<l;k++) {
+                result[i][j] = (result[i][j] + a[i][k]*b[k][j])%in_mod;
+            }
+        }
+    }
+    return result;
+}
+vector<vector<int>> operator%(vector<vector<int>> a, int in_mod)
+{
+    for(auto &i:a)
+        for(auto &j:i)
+            j%=in_mod;
+    return a;
+}
+vector<vector<int>> mult_identity(vector<vector<int>> a)
+{
+    int n=a.size();
+    vector<vector<int>> output(n, vector<int> (n));
+    for(int i=0;i<n;i++)
+        output[i][i]=1;
+    return output;
+}
+
+vector<int> mat_vector_product(vector<vector<int>> a, vector<int> b, int in_mod)
+{
+    int n =a.size();
+
+    vector<int> output(n);
+    for(int i=0;i<n;i++)
+    {
+        for(int j=0;j<n;j++)
+        {
+            output[i]+=a[i][j]*b[j];
+            output[i]%=in_mod;
+        }
+    }
+    return output;
+}
+
+
+
+
+auto power(auto a, int b, int in_mod)
+{
+
+    // if(b>=in_mod)
+    //     b%=in_mod-1;
+    auto prod = mult_identity(a);
+    auto mult = a % in_mod;
+    while (b != 0)
+    {
+        if (b % 2)
+        {
+            prod = multiply(prod, mult, in_mod);
+        }
+        mult = multiply(mult, mult, in_mod);
+        b /= 2;
+    }
+    return prod;
+}
+int mod_inv(int q, int in_mod)
+{
+
+    return power(q, in_mod - 2, in_mod);
+}
+
+// Returns minimum x for which a ^ x % m = b % m, a and m are coprime.
+int solve(int a, int b, int m) {
+    a %= m, b %= m;
+    int n = sqrt(m) + 1;
+
+    int an = 1;
+    for (int i = 0; i < n; ++i)
+        an = (an * 1ll * a) % m;
+
+    unordered_map<int, int> vals;
+    for (int q = 0, cur = b; q <= n; ++q) {
+        vals[cur] = q;
+        cur = (cur * 1ll * a) % m;
+    }
+
+    for (int p = 1, cur = 1; p <= n; ++p) {
+        cur = (cur * 1ll * an) % m;
+        if (vals.count(cur)) {
+            int ans = n * p - vals[cur];
+            return ans;
+        }
+    }
+    return -1;
+
+}
+
+int gcd(int a, int b) {
+    return a ? gcd(b % a, a) : b;
+}
+
+int powmod(int a, int b, int p) {
+    int res = 1;
+    while (b > 0) {
+        if (b & 1) {
+            res = res * a % p;
+        }
+        a = a * a % p;
+        b >>= 1;
+    }
+    return res;
+}
+
+int generator(int p) {
+    vector<int> fact;
+    int phi = p-1, n = phi;
+    for (int i = 2; i * i <= n; ++i) {
+        if (n % i == 0) {
+            fact.push_back(i);
+            while (n % i == 0)
+                n /= i;
+        }
+    }
+    if (n > 1)
+        fact.push_back(n);
+
+    for (int res = 2; res <= p; ++res) {
+        bool ok = true;
+        for (int factor : fact) {
+            if (powmod(res, phi / factor, p) == 1) {
+                ok = false;
+                break;
+            }
+        }
+        if (ok) return res;
+    }
+    return -1;
+}
+void solve()
+{
+    int n, f1, f2, f3, c;
+    cin>>n>>f1>>f2>>f3>>c;
+
+
+    f1 = (f1 * c)%mod;
+    f2 = (f2 * c%mod * c)%mod;
+    f3 = (f3 * c%mod * c%mod *c )%mod;
+    int g = 5;
+
+    f1 = solve(g, f1, mod);
+    f2 = solve(g, f2, mod);
+    f3 = solve(g, f3, mod);
+
+    //mat expo
+    vector<vector<int>> mat = {
+        {1, 1, 1},
+        {1, 0, 0},
+        {0, 1, 0},
+
+    };
+
+    mat = power(mat, n-3, mod-1);
+
+
+    //once extracted //raise power and finish
+    auto f = mat_vector_product(mat, {f3, f2, f1}, mod-1);
+    
+    int ans = power(g, f[0],mod);
+    ans = (ans * mod_inv(power(c, n, mod), mod))%mod;
+    cout<<ans<<endl;
+
+
+
+}
+
+
+
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cerr.tie(NULL);
+     #ifndef ONLINE_JUDGE
+         if (fopen("INPUT.txt", "r"))
+         {
+             freopen("INPUT.txt", "r", stdin);
+             freopen("OUTPUT.txt", "w", stdout);
+         }
+     #endif
+    auto clk = clock();
+    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+    // -------------------------------------Code starts here---------------------------------------------------------------------
+
+    int t = 1;
+    /* cin >> t; */
+
+    for (int test = 1; test <= t; test++)
+    {
+        /* cout<<"Case #"<<test<<": "; */
+        solve();
+        // cout<<endl;
+    }
+
+    // -------------------------------------Code ends here------------------------------------------------------------------
+
+    clk = clock() - clk;
+    // cerr << fixed << setprecision(6) << "Time: " << ((long double)clk) / CLOCKS_PER_SEC << "\n";
+    return 0;
+}
