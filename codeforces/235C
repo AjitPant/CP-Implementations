@@ -1,0 +1,300 @@
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+#define int long long
+
+#define all(X) (X).begin(), (X).end()
+#define reset(X) memset(X, 0, sizeof(X))
+#define mp(a, b) make_pair(a, b)
+#define pb push_back
+#define endl '\n'
+#define fi first
+#define se second
+
+using namespace __gnu_pbds;
+using namespace std;
+const int mod = 1e9+7;
+const int mod3 = 1e6 + 3;
+//const int mod=998'244'353;
+//const int mod=1e9+9;
+
+const int MOD = mod;
+
+const int INF=4e18+10;
+// const int INF = 4e18 + 10;
+template <typename T>
+using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+template <typename T>
+using ordered_multiset = tree<T, null_type, less_equal<T>, rb_tree_tag, tree_order_statistics_node_update>;
+
+#define read(n) \
+    int n;      \
+cin >> n;
+#define readv(x, n)   \
+    vector<int> x(n); \
+for (auto &i : x) \
+cin >> i;
+
+typedef vector<int> vi;
+typedef vector<vector<int>> vvi;
+typedef pair<int, int> pii;
+
+template <typename T1, typename T2>
+void set_min(T1 &a, T2 b){
+    a = min(a, (T1)b);
+}
+/* template <typename T1, typename T2> */
+bool sort_by_sec(pair<int, int> a, pair<int,int> b)
+{
+    return make_pair(a.se, a.fi)<make_pair(b.se,b.fi);
+}
+
+template<typename T>
+vector<int> coordinate_compress(vector<T > a)
+{
+    set<T> s;
+    for(T elem:a)
+        s.insert(elem);
+
+    vector<T> temp;
+    for(T elem:s)
+        temp.push_back(elem);
+    map<T, int> counter;
+    for(int i=0;i<temp.size();i++)
+        counter[temp[i]] = i;
+    vector<int> to_return;
+    for(T elem:a)
+        to_return.push_back(counter[elem]);
+    return to_return;
+
+}
+
+int multiply(int a, int b, int in_mod) { return (int)(1LL*a * b % in_mod );}
+int mult_identity(int a) { return 1; }
+
+
+vector<int >multiply(const vector<int>& a, const vector<int>& b,int mod);
+vector<int> mult_identity(vector<int> a)
+{
+    return {1};
+}
+
+
+
+int power(int a, int b, int in_mod)
+{
+
+    int prod = mult_identity(a);
+    int mult = a % in_mod;
+    while (b != 0)
+    {
+        if (b % 2)
+        {
+            prod = multiply(prod, mult, in_mod);
+        }
+        mult = multiply(mult, mult, in_mod);
+        b /= 2;
+    }
+    return prod;
+}
+int mod_inv(int q, int in_mod)
+{
+
+    return power(q, in_mod - 2, in_mod);
+}
+
+struct state
+{
+    int len, link;
+    int size;
+    map<char, int> next;
+};
+const int MAXLEN = 1e6+100;
+state st[2*MAXLEN];
+int sz, last;
+
+void sa_init()
+{
+    st[0].link = -1;
+    st[0].len = 0;
+    st[0].size = 0;
+    sz++;
+    last = 0;
+}
+
+
+void sa_extend(char c)
+{
+    int cur = sz++;
+    st[cur].len = st[last].len + 1;
+    st[cur].size = 1;
+
+    int p = last;
+    while(p!=-1 && !st[p].next.count(c))
+    {
+        st[p].next[c] = cur;
+        p = st[p].link;
+    }
+    if(p == -1)
+    {
+        st[cur].link = 0;
+    }
+    else
+    {
+        int q= st[p].next[c];
+        if(st[q].len == st[p].len + 1)
+        {
+            st[cur].link = q;
+        }
+        else
+        {
+            int clone = sz ++ ;
+            st[clone].link = st[q].link;
+            st[clone].next = st[q].next;
+            st[clone].len = st[p].len + 1;
+
+            while(p!=-1&& st[p].next[c] == q)
+            {
+                st[p].next[c] = clone;
+                p = st[p].link;
+            }
+            st[q].link = st[cur].link = clone;
+        }
+
+    }
+    last = cur;
+
+
+}
+
+
+void preprocess()
+{
+    vector<pair<int, int>> overload;
+    for(int i= 1;i<sz;i++)
+    {
+        overload.pb({st[i].len, i});
+    }
+    sort(all(overload));
+    reverse(all(overload));
+
+
+    for(auto i:overload)
+    {
+        st[st[i.se].link].size += st[i.se].size;
+    }
+
+}
+
+void solve( )
+{
+    string s;
+    cin>>s;
+
+
+    sa_init();
+    for(auto i:s)
+        sa_extend(i);
+
+
+    preprocess();
+    int n;
+    cin>>n;
+    for(int i=0;i<n;i++)
+    {
+        string p;
+        cin>>p;
+
+        int ans = 0;
+        map<int, bool> marked;
+
+        int start = 0;
+        int len = 0;
+        for(auto j:p)
+        {
+            while(start && st[start].next.count(j)==0)
+            {
+                start =st[start].link;
+                len =st[start].len;
+            }
+
+            if(st[start].next.count(j))
+                start = st[start].next[j], len ++;
+
+
+        }
+        if(len == p.size())
+        {
+            ans+=st[start].size;
+            marked[start] = true;
+        }
+
+
+
+        for(int j=0;j<p.size()-1;j++)
+        {
+
+            if(start!=0 && len == p.size() )
+            {
+                // if( st[st[start].link].len == st[start].len-1 || !st[start].next.count(p[j]))
+                len --;
+                if(len<=st[st[start].link].len)
+                start = st[start].link ;
+            }
+            while(start!=0 && !st[start].next.count(p[j]))
+            {
+                start = st[start].link;
+                len = st[start].len;
+
+            }
+            if(st[start].next.count(p[j]))
+            {
+                start = st[start].next[p[j]];
+                len++;
+
+                if(marked[start]&&len==p.size())
+                    break;
+
+                if (!marked[start] && len == p.size())
+                {
+                    ans += st[start].size;
+                    marked[start] = true;
+                }
+            }
+        }
+        cout<<ans<<endl;
+    }
+}
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cerr.tie(NULL);
+#ifndef ONLINE_JUDGE
+    if (fopen("INPUT.txt", "r"))
+    {
+        freopen("INPUT.txt", "r", stdin);
+        freopen("OUTPUT.txt", "w", stdout);
+    }
+#endif
+    auto clk = clock();
+    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+    // -------------------------------------Code starts here---------------------------------------------------------------------
+
+    int t = 1;
+    //cin >> t;
+
+    for (int test = 1; test <= t; test++)
+    {
+        //cout<<"Case #"<<test<<": ";
+        solve();
+        //cout<<endl;
+    }
+
+    // -------------------------------------Code ends here------------------------------------------------------------------
+
+    clk = clock() - clk;
+    // cerr << fixed << setprecision(6) << "Time: " << ((long double)clk) / CLOCKS_PER_SEC << "\n";
+    return 0;
+}
