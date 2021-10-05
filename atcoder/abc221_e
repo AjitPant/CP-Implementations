@@ -1,0 +1,113 @@
+#include <bits/stdc++.h>
+#define int long long
+#define endl '\n'
+using namespace std;
+ 
+typedef long long ll;
+typedef long double ld;
+#define db(x) cerr << #x << ": " << x << '\n';
+#define read(a) int a; cin >> a;
+#define reads(s) string s; cin >> s;
+#define readb(a, b) int a, b; cin >> a >> b;
+#define readc(a, b, c) int a, b, c; cin >> a >> b >> c;
+#define readarr(a, n) int a[(n) + 1] = {}; FOR(i, 1, (n)) {cin >> a[i];}
+#define readmat(a, n, m) int a[n + 1][m + 1] = {}; FOR(i, 1, n) {FOR(j, 1, m) cin >> a[i][j];}
+
+#define print(a) cout << a << endl;
+#define printarr(a, n) FOR (i, 1, n) cout << a[i] << " "; cout << endl;
+#define printv(v) for (int i: v) cout << i << " "; cout << endl;
+#define printmat(a, n, m) FOR (i, 1, n) {FOR (j, 1, m) cout << a[i][j] << " "; cout << endl;}
+#define all(v) v.begin(), v.end()
+#define sz(v) (int)(v.size())
+#define rz(v, n) v.resize((n) + 1);
+#define pb push_back
+#define fi first
+#define se second
+#define vi vector <int>
+#define pi pair <int, int>
+#define vpi vector <pi>
+#define vvi vector <vi>
+#define setprec cout << fixed << showpoint << setprecision(20);
+#define FOR(i, a, b) for (int i = (a); i <= (b); i++)
+#define FORD(i, a, b) for (int i = (a); i >= (b); i--)
+const ll inf = 1e18;
+const ll mod = 998244353;
+const ll N = 2e5 + 1;
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+int power (int a, int b = mod - 2)
+{
+    int res = 1;
+    while (b > 0) {
+        if (b & 1)
+            res = res * a % mod;
+        a = a * a % mod;
+        b >>= 1;
+    }
+    return res;
+}
+
+vi tree;
+int query (int v, int start, int end, int l, int r)
+{
+	if (l > end || r < start) return 0;
+	
+	if (l <= start && r >= end) return tree[v];
+	int mid = (start + end)/2;
+	return (query(2*v, start, mid, l, r) + query(2*v + 1, mid + 1, end, l, r)) % mod;
+}
+ 
+void update (int v, int start, int end, int index, int x)
+{
+	if (start == end) tree[v] = (tree[v] + x) % mod;
+	else
+	{
+		int mid = (start + end)/2;
+		if (index <= mid) update(2*v, start, mid, index, x);
+		else update(2*v + 1, mid + 1, end, index, x);
+		tree[v] = (tree[2*v] + tree[2*v + 1]) % mod;
+	}
+}
+
+signed main()
+{
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);
+	
+	read(n);
+    readarr(a, n);
+    tree.resize(4*n + 1);
+    
+    int po[n + 10], potwo[n + 10];
+    po[0] = potwo[0] = 1;
+    int x = (mod + 1)/2;
+    FOR (i, 1, n + 5) po[i] = po[i-1] * x % mod, potwo[i] = potwo[i-1]*2 % mod;
+    
+    //compress
+    set <int> s;
+    FOR (i, 1, n) s.insert(a[i]);
+    map <int, int> mp;
+    int cnt = 0;
+    for (int i: s) mp[i] = ++cnt;
+    FOR (i, 1, n) a[i] = mp[a[i]];
+    
+    int ans = 0;
+    FOR (j, 1, n)
+    {
+        ans = (ans + potwo[j]*query(1, 1, n, 1, a[j])) % mod;
+        update(1, 1, n, a[j], po[j + 1]);
+    }
+    
+    cout << ans;
+}
+
+
+
+
+
+
+
+
+
+
+
