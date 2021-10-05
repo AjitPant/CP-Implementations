@@ -1,0 +1,165 @@
+#include "bits/stdc++.h"
+#define int long long
+#define endl '\n'
+using namespace std;
+ 
+typedef long long ll;
+typedef long double ld;
+#define db(x) cerr << #x << ": " << x << '\n';
+#define read(a) int a; cin >> a;
+#define reads(s) string s; cin >> s;
+#define readb(a, b) int a, b; cin >> a >> b;
+#define readc(a, b, c) int a, b, c; cin >> a >> b >> c;
+#define readarr(a, n) int a[(n) + 1] = {}; FOR(i, 1, (n)) {cin >> a[i];}
+#define readmat(a, n, m) int a[n + 1][m + 1] = {}; FOR(i, 1, n) {FOR(j, 1, m) cin >> a[i][j];}
+
+#define print(a) cout << a << endl;
+#define printarr(a, n) FOR (i, 1, n) cout << a[i] << " "; cout << endl;
+#define printv(v) for (int i: v) cout << i << " "; cout << endl;
+#define printmat(a, n, m) FOR (i, 1, n) {FOR (j, 1, m) cout << a[i][j] << " "; cout << endl;}
+#define all(v) v.begin(), v.end()
+#define sz(v) (int)(v.size())
+#define rz(v, n) v.resize((n) + 1);
+#define pb push_back
+#define fi first
+#define se second
+#define vi vector <int>
+#define pi pair <int, int>
+#define vpi vector <pi>
+#define vvi vector <vi>
+#define setprec cout << fixed << showpoint << setprecision(20);
+#define FOR(i, a, b) for (int i = (a); i <= (b); i++)
+#define FORD(i, a, b) for (int i = (a); i >= (b); i--)
+const ll inf = 1e18;
+const ll mod = 998244353;
+const ll N = 2e5 + 1;
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+int power (int a, int b = mod - 2)
+{
+    int res = 1;
+    while (b > 0) {
+        if (b & 1)
+            res = res * a % mod;
+        a = a * a % mod;
+        b >>= 1;
+    }
+    return res;
+}
+
+vector <set<int>> adj;
+int n;
+
+void input()
+{
+	cin >> n;
+	adj.resize(n + 1);
+	for (int i = 1; i < n; i++)
+	{
+		readb(x, y);
+		adj[x].insert(y);
+		adj[y].insert(x);
+	}
+}
+
+int distone = 0;
+pi mxone = {0, 0};
+void dfs1 (int cur, int prev)
+{
+    distone++;
+    mxone = max(mxone, {distone, cur});
+	for (int i: adj[cur])
+		if (i != prev)
+			dfs1(i, cur);
+	distone--;
+}
+
+vi path;
+int s, r, diam, center = 0, ctwo = 0;
+void dfs2 (int cur, int prev)
+{
+    path.pb(cur);
+    if (cur == r)
+    {
+        center = path[diam/2];
+        if (diam % 2) ctwo = path[diam/2 + 1];
+    }
+    
+	for (int i: adj[cur])
+		if (i != prev)
+			dfs2(i, cur);
+	
+	path.pop_back();
+}
+
+int dist = 0;
+void dfs3 (int cur, int prev, int& cnt, int d)
+{
+    dist++;
+    if (dist == d) cnt++;
+	for (int i: adj[cur])
+		if (i != prev)
+			dfs3(i, cur, cnt, d);
+	
+	dist--;
+}
+
+signed main()
+{
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);	
+	input();
+	dfs1(1, 0);
+	
+	s = mxone.se;
+	distone = 0;
+    mxone = {0, 0};
+	dfs1(s, 0);
+	
+	r = mxone.se, diam = mxone.fi - 1;
+	dfs2(s, 0);
+	
+	if (diam % 2 == 0)
+	{
+	    int cnt = 0;
+	    for (int i: adj[center])
+	        adj[i].erase(center);
+	    
+	    int sum = 0, ans = 1;
+	    for (int i: adj[center])
+	    {
+	        int x = 0;
+	        dfs3(i, 0, x, diam/2);
+	        sum += x;
+	        ans = ans*(x + 1) % mod;
+	    }
+	    
+	    ans -= sum + 1;
+	    ans %= mod;
+	    ans = (ans + 10*mod) % mod;
+	    cout << ans;
+	}
+	
+	else
+	{
+	    int cnt1 = 0, cnt2 = 0;
+	    adj[center].erase(ctwo);
+	    adj[ctwo].erase(center);
+	    
+	    dfs3(center, 0, cnt1, diam/2 + 1);
+	    dist = 0;
+	    
+	    dfs3(ctwo, 0, cnt2, diam/2 + 1);
+	    cout << cnt2*cnt1 % mod;
+	}
+}
+
+
+
+
+
+
+
+
+
+
